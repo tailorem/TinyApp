@@ -23,12 +23,9 @@ function generateRandomString() {
   }
   return result.slice(0, 6);
 }
-generateRandomString();
-
 
 // On requests, say hello
 app.get("/", (req, res) => {
-console.log(generateRandomString());
   res.end("Home page is currently operational!");
 });
 
@@ -39,18 +36,32 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.post("/urls", (req, res) => {
+  let random = generateRandomString().toString();
+  let link = (req.body.longURL).toString();
+  // console.log(urlDatabase);
+  // console.log(req);
+  // console.log(res);
+  // console.log(random);
+  // console.log(link);
+  urlDatabase[random] = link;
+  res.redirect(303, `/urls/${random}`)
+  // console.log(urlDatabase);
+});
+
 // Create route handler for "urls_new"
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // view POST parameters
+  // console.log(req.body);  // view POST parameters
   res.send("'Accepted'");
 });
 
 // Create route handler for "urls_show"
 app.get("/urls/:id", (req, res) => {
+  // console.log([req.params.id]);
   let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
