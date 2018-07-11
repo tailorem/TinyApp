@@ -26,7 +26,7 @@ function generateRandomString() {
 
 // On requests, say hello
 app.get("/", (req, res) => {
-  res.redirect("/urls");
+  res.redirect(301, "/urls");
 });
 
 // Create route handler for "urls"
