@@ -26,7 +26,7 @@ app.get("/urls", (req, res) => {
 
 // Create route handler for "urls_show"
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shorURL: req.params.id };
+  let templateVars = { shortURL: req.params.id, fullURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
