@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>TinyApp</title>
+  <title>TinyApp - Show URL</title>
 </head>
 <body>
-  <p><%= `${shortURL}: ${fullURL}` %></p>
+  <%- include('partials/_header') %>
+
+  <p><%= `${shortURL}: ${longURL}` %></p>
 </body>
 </html>
