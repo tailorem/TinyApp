@@ -26,7 +26,7 @@ function generateRandomString() {
 
 // On requests, say hello
 app.get("/", (req, res) => {
-  res.end("Home page is currently operational!");
+  res.redirect("/urls");
 });
 
 // Create route handler for "urls"
@@ -45,7 +45,7 @@ app.post("/urls", (req, res) => {
   // console.log(random);
   // console.log(link);
   urlDatabase[random] = link;
-  // res.redirect(301, `/urls/${random}`);
+  res.redirect(301, `/urls/${random}`);
   // console.log(urlDatabase);
 });
 
@@ -54,7 +54,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-// When new urls are posted, send message "accepted"
+// // When new urls are posted, send message "accepted"
 // app.post("/urls", (req, res) => {
 //   console.log(req.body);  // view POST parameters
 //   res.send("'Accepted'");
@@ -68,7 +68,12 @@ app.get("/urls/:id", (req, res) => {
     longURL: urlDatabase[req.params.id],
   };
   // console.log(templateVars.link);
-  res.render("urls_show", templateVars);
+  if (urlDatabase.hasOwnProperty(req.params.id) === false) {
+    // console.log("this is false");
+    res.status(404).render("urls_404");
+  } else {
+    res.render("urls_show", templateVars);
+  }
 });
 
 // Create route handler for "u/:id"
@@ -76,7 +81,16 @@ app.get("/u/:shortURL", (req, res) => {
   // console.log("I'm here!");
   let shortURL = (req.originalUrl).slice(3);
   let longURL = urlDatabase[shortURL];
+  if (!longURL) {
+    // console.log("this is false");
+    res.status(404).render("urls_404");
+  } else {
   res.redirect(301, `${longURL}`);
+  }
+});
+
+app.use((req, res) => {
+  res.status(404).render("urls_404");
 });
 
 // Start listening

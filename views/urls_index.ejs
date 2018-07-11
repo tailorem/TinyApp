@@ -6,10 +6,18 @@
 </head>
 <body>
   <%- include('partials/_header') %>
-
+  <h4>Your Short URLs</h4>
   <ul>
     <% for(url in urls) { %>
-    <li><%= `${url}: ${urls[url]}` %></li>
+    <li><a href="/urls/<%= url %>">
+      <%= `${url}` %></a><%= `: ${urls[url]}` %>
+<!--     <form method="GET" action="/urls/<%= url %>/edit" style='display:inline;'>
+        <button>EDIT</button>
+    </form> -->
+    <form method="POST" action="/urls/<%= url %>/delete" style='display:inline;'>
+        <button>DELETE</button>
+    </form>
+    </li>
     <% } %>
   </ul>
   <p>Shorten your URL <a href="/urls/new">here</a>!</p>
