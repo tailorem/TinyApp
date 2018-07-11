@@ -40,12 +40,12 @@ app.post("/urls", (req, res) => {
   let random = generateRandomString().toString();
   let link = (req.body.longURL).toString();
   // console.log(urlDatabase);
-  // console.log(req);
+  console.log(req);
   // console.log(res);
   // console.log(random);
   // console.log(link);
   urlDatabase[random] = link;
-  res.redirect(303, `/urls/${random}`)
+  // res.redirect(301, `/urls/${random}`);
   // console.log(urlDatabase);
 });
 
@@ -54,16 +54,29 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-app.post("/urls", (req, res) => {
-  // console.log(req.body);  // view POST parameters
-  res.send("'Accepted'");
-});
+// When new urls are posted, send message "accepted"
+// app.post("/urls", (req, res) => {
+//   console.log(req.body);  // view POST parameters
+//   res.send("'Accepted'");
+// });
 
-// Create route handler for "urls_show"
+// Create route handler for "urls/:id"
 app.get("/urls/:id", (req, res) => {
   // console.log([req.params.id]);
-  let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id] };
+  let templateVars = {
+    shortURL: req.params.id,
+    longURL: urlDatabase[req.params.id],
+  };
+  // console.log(templateVars.link);
   res.render("urls_show", templateVars);
+});
+
+// Create route handler for "u/:id"
+app.get("/u/:shortURL", (req, res) => {
+  // console.log("I'm here!");
+  let shortURL = (req.originalUrl).slice(3);
+  let longURL = urlDatabase[shortURL];
+  res.redirect(301, `${longURL}`);
 });
 
 // Start listening

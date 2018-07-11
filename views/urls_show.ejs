@@ -2,11 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>TinyApp - Show URL</title>
+  <title>TinyApp - Show My URL</title>
 </head>
 <body>
   <%- include('partials/_header') %>
 
-  <p><%= `${shortURL}: ${longURL}` %></p>
+  <p><a href="<%= `/u/${shortURL}` %>" id="shortLink">
+    <%= `http://localhost:8080/${shortURL} ` %></a>
+    <%= `(${longURL})` %></p>
 </body>
 </html>
+
