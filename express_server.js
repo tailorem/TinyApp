@@ -39,12 +39,15 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   let random = generateRandomString().toString();
   let link = (req.body.longURL).toString();
+  if (!link.startsWith("http://")) {
+    link = "http://" + link;
+  }
+  urlDatabase[random] = link;
   // console.log(urlDatabase);
-  console.log(req);
+  // console.log(req);
   // console.log(res);
   // console.log(random);
   // console.log(link);
-  urlDatabase[random] = link;
   res.redirect(301, `/urls/${random}`);
   // console.log(urlDatabase);
 });
@@ -68,7 +71,7 @@ app.get("/urls/:id", (req, res) => {
     longURL: urlDatabase[req.params.id],
   };
   // console.log(templateVars.link);
-  if (urlDatabase.hasOwnProperty(req.params.id) === false) {
+  if (!urlDatabase.hasOwnProperty(req.params.id)) {
     // console.log("this is false");
     res.status(404).render("urls_404");
   } else {
@@ -87,6 +90,31 @@ app.get("/u/:shortURL", (req, res) => {
   } else {
   res.redirect(301, `${longURL}`);
   }
+});
+
+// Route handler for deleting urls
+app.post("/urls/:id/delete", (req, res) => {
+  // console.log(urlDatabase);
+  for (let key in urlDatabase) {
+    if (key === req.params.id) {
+      delete urlDatabase[key];
+      // console.log("found a match");
+    }
+    // console.log(urlDatabase);
+  }
+  res.redirect("/urls");
+});
+
+// Route handler for editing urls
+app.post("/urls/:id/edit", (req, res) => {
+  if (urlDatabase.hasOwnProperty(req.params.id)) {
+    if (!req.body.newURL.toString().startsWith("http://")) {
+      urlDatabase[req.params.id] = `http://${req.body.newURL}`;
+    } else {
+      urlDatabase[req.params.id] = req.body.newURL;
+    }
+  }
+  res.redirect("/urls");
 });
 
 app.use((req, res) => {

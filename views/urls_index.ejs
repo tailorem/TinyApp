@@ -9,14 +9,11 @@
   <h4>Your Short URLs</h4>
   <ul>
     <% for(url in urls) { %>
-    <li><a href="/urls/<%= url %>">
-      <%= `${url}` %></a><%= `: ${urls[url]}` %>
-<!--     <form method="GET" action="/urls/<%= url %>/edit" style='display:inline;'>
-        <button>EDIT</button>
-    </form> -->
-    <form method="POST" action="/urls/<%= url %>/delete" style='display:inline;'>
+    <li><a href="<%= urls[url] %>" id="shortLink"><%= `${url}` %></a><%= ` → ${urls[url]}` %>
+      <a href="/urls/<%= url %>">Edit</a>
+      <form method="POST" action="/urls/<%= url %>/delete" style='display:inline;'>
         <button>DELETE</button>
-    </form>
+      </form>
     </li>
     <% } %>
   </ul>
