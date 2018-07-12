@@ -1,8 +1,14 @@
-// Require modules and set port
+// Require and use modules
 const express = require("express");
 const app = express();
+const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
+// const ejs = require("ejs");
+
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
+
+// Set port
 const PORT = 8080;
 
 // Set view engine to EJS
@@ -24,15 +30,23 @@ function generateRandomString() {
   return result.slice(0, 6);
 }
 
-// On requests, say hello
+// On requests, redirect to "urls"
 app.get("/", (req, res) => {
   res.redirect(301, "/urls");
 });
 
-// Create route handler for "urls"
+// Route handler for "login"
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
+});
+
+// Route handler for "urls"
 app.get("/urls", (req, res) => {
-  let path = "localhost:8080/";
-  let templateVars = { urls: urlDatabase };
+  let templateVars = {
+    urls: urlDatabase,
+    username: req.cookies.username
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -44,49 +58,39 @@ app.post("/urls", (req, res) => {
   }
   urlDatabase[random] = link;
   // console.log(urlDatabase);
-  // console.log(req);
-  // console.log(res);
-  // console.log(random);
-  // console.log(link);
   res.redirect(301, `/urls/${random}`);
-  // console.log(urlDatabase);
 });
 
-// Create route handler for "urls_new"
+// Rreate route handler for "urls_new"
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = { username: req.cookies.username };
+  res.render("urls_new", templateVars);
 });
 
-// // When new urls are posted, send message "accepted"
-// app.post("/urls", (req, res) => {
-//   console.log(req.body);  // view POST parameters
-//   res.send("'Accepted'");
-// });
-
-// Create route handler for "urls/:id"
+// Route handler for "urls/:id"
 app.get("/urls/:id", (req, res) => {
   // console.log([req.params.id]);
   let templateVars = {
     shortURL: req.params.id,
     longURL: urlDatabase[req.params.id],
+    username: req.cookies.username
   };
-  // console.log(templateVars.link);
+  // if short URL does not exist, render 404
   if (!urlDatabase.hasOwnProperty(req.params.id)) {
-    // console.log("this is false");
-    res.status(404).render("urls_404");
+    res.status(404).render("urls_404", templateVars);
   } else {
     res.render("urls_show", templateVars);
   }
 });
 
-// Create route handler for "u/:id"
+// Route handler for "u/:id"
 app.get("/u/:shortURL", (req, res) => {
   // console.log("I'm here!");
   let shortURL = (req.originalUrl).slice(3);
   let longURL = urlDatabase[shortURL];
   if (!longURL) {
     // console.log("this is false");
-    res.status(404).render("urls_404");
+    res.status(404).render("urls_404", { username: req.cookies.username });
   } else {
   res.redirect(301, `${longURL}`);
   }
@@ -118,7 +122,7 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.use((req, res) => {
-  res.status(404).render("urls_404");
+  res.status(404).render("urls_404", { username: req.cookies.username });
 });
 
 // Start listening
