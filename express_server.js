@@ -39,7 +39,7 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   let random = generateRandomString().toString();
   let link = (req.body.longURL).toString();
-  if (!link.startsWith("http://")) {
+  if (!link.startsWith("http://") && !link.startsWith("https://")) {
     link = "http://" + link;
   }
   urlDatabase[random] = link;

@@ -9,8 +9,8 @@
 
   <p><%= `${shortURL} → (${longURL})` %>
     <form method="POST" action="/urls/<%= shortURL %>/edit" style='display:inline;'>
-      <input type="text" class="form-control" name="newURL" placeholder="http://">
-      <button type="submit" value="submit">EDIT</button>
+      <input type="text" name="newURL" value="http://">
+      <button type="submit">EDIT</button>
     </form>
   </p>
   <p><a href="/urls/new">Create a new short URL</a> <a href="/urls/">View my short URLs</a></p>
