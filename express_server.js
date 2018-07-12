@@ -53,7 +53,7 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase,
     username: req.cookies.username
   };
-  if (!req.cookies.username) console.log("cookies not found");
+  // if (!req.cookies.username) console.log("cookies not found");
   res.render("urls_index", templateVars);
 });
 
