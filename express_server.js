@@ -41,12 +41,19 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+// Route handler for "logout"
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
+});
+
 // Route handler for "urls"
 app.get("/urls", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
     username: req.cookies.username
   };
+  if (!req.cookies.username) console.log("cookies not found");
   res.render("urls_index", templateVars);
 });
 
