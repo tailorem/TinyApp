@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TinyApp - Current URLS</title>
+</head>
+<body>
+  <h2>TinyApp</h2>
+  <% if (message) { %>
+    <p><%= message %></p>
+  <% } %>
+  <form method="POST" action="/login">
+    <small>Log in:</small>
+    <input type="email" name="email" placeholder="email@example.com" style='display:inline;'>
+    <input type="password" name="password" placeholder="password" style='display:inline;'>
+    <button>LOGIN</button>
+  </form>
+
+</body>
+</html>

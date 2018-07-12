@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TinyApp - Current URLS</title>
+</head>
+<body>
+
+  <%- include('partials/_header') %>
+  <h4>Your Short URLs</h4>
+
+  <% if (currentUser) %>
+  <table>
+    <% for(url in urls) { %>
+      <tr>
+        <td>
+          <a href="<%= urls[url] %>" id="shortLink"><%= `${url}` %></a><%= ` → ${urls[url]}` %>
+        </td>
+        <td>
+          <a href="/urls/<%= url %>">Edit</a>
+          <form method="POST" action="/urls/<%= url %>/delete" style='display:inline;'>
+            <button>DELETE</button>
+          </form>
+        </td>
+      </tr>
+    <% } %>
+  </table>
+  <p>Shorten your URL <a href="/urls/new">here</a>!</p>
+</body>
+</html>
