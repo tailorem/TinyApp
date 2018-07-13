@@ -1,7 +1,7 @@
 // Require and use modules
 const express = require("express");
 const app = express();
-// const bcrypt = require(bcrypt);
+const bcrypt = require(bcrypt);
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
