@@ -77,12 +77,12 @@ function urlsForUser(id) {
   return output;
 }
 
-// const templateVars = {
-//   urls: urlDatabase,
-//   users: users,
-//   currentUser: null,
-//   message: null
-// };
+const templateVars = {
+  urls: urlDatabase,
+  users: users,
+  currentUser: null,
+  message: null
+};
 
 // templateVars.currentUser = users[req.cookies.user_id];
 // templateVars.message = "";
@@ -99,24 +99,15 @@ app.get("/", (req, res) => {
 
 // Route handler for "urls"
 app.get("/urls", (req, res) => {
-  const templateVars = {
-    urls: urlsForUser(req.cookies.user_id),
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: null
-  };
+  templateVars.urls = urlsForUser(req.cookies.user_id);
+  templateVars.currentUser = users[req.cookies.user_id];
   // console.log(templateVars.urls);
   res.render("index", templateVars);
 });
 
 // Rreate route handler for "new"
 app.get("/urls/new", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: null
-  };
+  templateVars.currentUser = users[req.cookies.user_id];
   if (!req.cookies.user_id) {
     res.redirect("/login");
   } else {
@@ -126,49 +117,42 @@ app.get("/urls/new", (req, res) => {
 
 // Route handler for "urls/:id"
 app.get("/urls/:id", (req, res) => {
-  // console.log(templateVars.longURL);
-  // console.log(templateVars.shortURL);
-  // if short URL does not exist, render 404
+  templateVars.currentUser = users[req.cookies.user_id];
+  templateVars.shortURL = req.params.id;
+  templateVars.longURL = urlDatabase[req.params.id];
+
   if (!urlDatabase.hasOwnProperty(req.params.id)) {
-    // templateVars.longURL = null;
-    res.status(404).render("index", {
-      urls: urlDatabase,
-      users: users,
-      currentUser: users[req.cookies.user_id],
-      message: "Oops, looks like that page doesn't exist."
-    });
-  } else {
-    const templateVars = {
-      urls: urlDatabase,
-      users: users,
-      currentUser: users[req.cookies.user_id],
-      message: null,
-      shortURL: req.params.id,
-      longURL: urlDatabase[req.params.id]
-    };
-    // console.log(urlDatabase[req.params.id].longURL)
-    res.render("show", templateVars);
+    templateVars.message = "Oops, looks like that page doesn't exist.";
+    res.status(404).render("index", templateVars);
+    return;
   }
+  if (!req.cookies.user_id) {
+    templateVars.message = "Please make sure you're logged in to see your URLs!";
+    res.status(400).render("index", templateVars);
+    return;
+  }
+  if (urlDatabase[req.params.id].userID !== req.cookies.user_id) {
+    templateVars.message = "Oops, that doesn't seem to be one of your URLs!";
+    res.status(401).render("index", templateVars);
+    return;
+  }
+
+    res.render("show", templateVars);
 });
 
 // Route handler for "/u/:id"
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
-  console.log(req.params.id);
-  const templateVars = {
-    urls: urlDatabase,
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: null,
-    shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id],
-  };
+  templateVars.currentUser = users[req.cookies.user_id];
+  templateVars.shortURL = req.params.id;
+  longURL = urlDatabase[req.params.id];
+
   if (!longURL) {
     templateVars.message = "Oops, looks like that page doesn't exist.";
     res.status(404).render("index", templateVars);
   } else {
-  res.redirect(301, `/${longURL}`);
+    res.redirect(301, `/${longURL}`);
   }
 });
 
@@ -192,43 +176,28 @@ app.post("/urls", (req, res) => {
 
 // Route handler for deconsting urls (POST)
 app.post("/urls/:id/delete", (req, res) => {
-  for (let key in urlDatabase) {
-    if (key === req.params.id) {
-      delete urlDatabase[key];
+  for (let url in urlDatabase) {
+    if (url === req.params.id) {
+      delete urlDatabase[url];
     }
   }
   res.redirect("/urls");
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: null
-  };
+  templateVars.currentUser = users[req.cookies.user_id];
   res.render("login", templateVars);
 });
 
 // Route handler for "register"
 app.get("/register", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: null
-  };
+  templateVars.currentUser = users[req.cookies.user_id];
   res.render("register", templateVars);
 });
 
 // Route handler for "/login" (POST)
 app.post("/login", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: "Oops, you have entered an incorrect email or password!"
-  };
+  templateVars.currentUser = users[req.cookies.user_id];
   for (let user in users) {
     if (req.body.email === users[user].email && req.body.password === users[user].password) {
       res.cookie("user_id", users[user].id);
@@ -236,17 +205,13 @@ app.post("/login", (req, res) => {
       return;
     }
   }
+  templateVars.message = "Oops, you have entered an incorrect email or password!"
   res.status(403).render("login", templateVars);
 });
 
 // Route handler for "register"
 app.post("/register", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: null
-  };
+  templateVars.currentUser = users[req.cookies.user_id];
 
   if (!req.body.email || !req.body.password) {
     templateVars.message = "Please enter a valid email and a password."
@@ -281,14 +246,8 @@ app.post("/logout", (req, res) => {
 
 // Route handler for editing urls (POST)
 app.post("/urls/:id/edit", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: "Oops, you can't do that."
-  };
-  // console.log(urlDatabase[req.params.id].userID);
-  // console.log(req.cookies.user_id)
+  templateVars.currentUser = users[req.cookies.user_id];
+  templateVars.message = "Oops, you can't do that.";
   if (urlDatabase[req.params.id].userID !== req.cookies.user_id) {
     res.status(403).render("index", templateVars);
     return;
@@ -304,12 +263,8 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.use((req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: "Oops, you can't do that."
-  };
+  templateVars.currentUser = users[req.cookies.user_id];
+  templateVars.message = "Oops, you can't do that.";
   res.status(404).render("404", templateVars);
 });
 
