@@ -7,7 +7,9 @@
     <p><%= message %></p>
   <% } %>
   <% if (currentUser) { %>
-    <h4>Your Short URLs</h4>
+    <% if (urls.length >= 1) { %>
+      <h4>Your Short URLs</h4>
+    <% } %>
     <table>
       <% for(url in urls) { %>
         <tr>
@@ -23,7 +25,7 @@
         </tr>
       <% } %>
     </table>
-    <p>Shorten your URL <a href="/urls/new">here</a>!</p>
+    <p><a href="/urls/new">Add a short URL</a>!</p>
   <% } else {%>
   <p>Don't have an account? Please <a href="/register">register</a> first.</p>
   <% } %>

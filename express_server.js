@@ -77,10 +77,10 @@ const templateVars = {
 // On requests, redirect to "urls"
 app.get("/", (req, res) => {
   if (req.cookies) {
-    console.log("where are they");
-    res.redirect("/login");
+    // console.log("where are they");
+    res.redirect("/urls");
   } else {
-    res.redirect(301, "/urls");
+    res.redirect(301, "/login");
   }
   // if logged in, redirect to "/urls"
   // else, redirect to "/login"
