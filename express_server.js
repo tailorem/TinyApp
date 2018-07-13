@@ -1,12 +1,20 @@
 // Require and use modules
+const cookieSession = require("cookie-session");
 const express = require("express");
 const app = express();
+
+app.use(cookieSession({
+  name: "session",
+  keys: ["secret-test-key", "other-test-key"],
+
+  // Cookie Options
+  // maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
+
 const bcrypt = require("bcrypt");
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-const cookieParser = require("cookie-parser");
-app.use(cookieParser());
 
 // Set view engine and define port
 app.set("view engine", "ejs");
@@ -68,7 +76,7 @@ const templateVars = {
   message: null
 };
 
-// templateVars.currentUser = users[req.cookies.user_id];
+// templateVars.currentUser = users[req.session.user_id];
 // templateVars.message = "";
 // templateVars.shortURL = req.params.id;
 // templateVars.longURL = urlDatabase[req.params.id].longURL;
@@ -76,7 +84,7 @@ const templateVars = {
 
 // On requests, redirect to "urls"
 app.get("/", (req, res) => {
-  if (req.cookies) {
+  if (req.session.user_id) {
     // console.log("where are they");
     res.redirect("/urls");
   } else {
@@ -88,16 +96,17 @@ app.get("/", (req, res) => {
 
 // Route handler for "urls"
 app.get("/urls", (req, res) => {
-  templateVars.urls = urlsForUser(req.cookies.user_id);
-  templateVars.currentUser = users[req.cookies.user_id];
-  // console.log(templateVars.urls);
+  // console.log(req.session);
+  templateVars.urls = urlsForUser(req.session.user_id);
+  templateVars.currentUser = users[req.session.user_id];
+  // console.log(users);
   res.render("index", templateVars);
 });
 
 // Rreate route handler for "new"
 app.get("/urls/new", (req, res) => {
-  templateVars.currentUser = users[req.cookies.user_id];
-  if (!req.cookies.user_id) {
+  templateVars.currentUser = users[req.session.user_id];
+  if (!req.session.user_id) {
     res.redirect("/login");
   } else {
     res.render("new", templateVars);
@@ -106,7 +115,7 @@ app.get("/urls/new", (req, res) => {
 
 // Route handler for "urls/:id"
 app.get("/urls/:id", (req, res) => {
-  templateVars.currentUser = users[req.cookies.user_id];
+  templateVars.currentUser = users[req.session.user_id];
   templateVars.shortURL = req.params.id;
   templateVars.longURL = urlDatabase[req.params.id];
 
@@ -115,12 +124,12 @@ app.get("/urls/:id", (req, res) => {
     res.status(404).render("index", templateVars);
     return;
   }
-  if (!req.cookies.user_id) {
+  if (!req.session.user_id) {
     templateVars.message = "Please make sure you're logged in to see your URLs!";
     res.status(400).render("index", templateVars);
     return;
   }
-  if (urlDatabase[req.params.id].userID !== req.cookies.user_id) {
+  if (urlDatabase[req.params.id].userID !== req.session.user_id) {
     templateVars.message = "Oops, that doesn't seem to be one of your URLs!";
     res.status(401).render("index", templateVars);
     return;
@@ -133,7 +142,7 @@ app.get("/urls/:id", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
-  templateVars.currentUser = users[req.cookies.user_id];
+  templateVars.currentUser = users[req.session.user_id];
   templateVars.shortURL = req.params.id;
   longURL = urlDatabase[req.params.id];
 
@@ -154,7 +163,7 @@ app.post("/urls", (req, res) => {
   }
   urlDatabase[random] = {};
   urlDatabase[random].longURL = link;
-  urlDatabase[random].userID = req.cookies.user_id;
+  urlDatabase[random].userID = req.session.user_id;
   console.log(urlDatabase[random]);
   res.redirect(301, `/urls/${random}`);
 });
@@ -174,22 +183,24 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  templateVars.currentUser = users[req.cookies.user_id];
+  templateVars.currentUser = users[req.session.user_id];
   res.render("login", templateVars);
 });
 
 // Route handler for "register"
 app.get("/register", (req, res) => {
-  templateVars.currentUser = users[req.cookies.user_id];
+  // if logged in, redirect to urls
   res.render("register", templateVars);
 });
 
 // Route handler for "/login" (POST)
 app.post("/login", (req, res) => {
-  templateVars.currentUser = users[req.cookies.user_id];
+  templateVars.currentUser = users[req.session.user_id];
   for (let user in users) {
     if (req.body.email === users[user].email && bcrypt.compareSync(req.body.password, users[user].password)) {
-      res.cookie("user_id", users[user].id);
+      console.log(users[user].id);
+      console.log(req.session);
+      req.session.user_id = `${users[user].id}`;
       res.redirect("/");
       return;
     }
@@ -200,15 +211,11 @@ app.post("/login", (req, res) => {
 
 // Route handler for "register"
 app.post("/register", (req, res) => {
-  templateVars.currentUser = users[req.cookies.user_id];
-
   if (!req.body.email || !req.body.password) {
     templateVars.message = "Please enter a valid email and a password."
     res.status(400).render("register", templateVars);
     return;
   }
-
-  const userID = randomStringGen();
 
   for (let user in users) {
     if (users[user].email === req.body.email) {
@@ -218,27 +225,30 @@ app.post("/register", (req, res) => {
     }
   }
 
+  const userID = randomStringGen();
+
   users[userID] = {
     id: userID,
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 12)
   }
-  console.log(users[userID].password);
-  res.cookie("user_id", userID);
+  req.session.user_id = userID;
+  templateVars.currentUser = users[req.session.user_id];
+  console.log(req.session.user_id);
   res.redirect("/urls");
 });
 
 // Route handler for "/logout" (POST)
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/login");
 });
 
 // Route handler for editing urls (POST)
 app.post("/urls/:id/edit", (req, res) => {
-  templateVars.currentUser = users[req.cookies.user_id];
+  templateVars.currentUser = users[req.session.user_id];
   templateVars.message = "Oops, you can't do that.";
-  if (urlDatabase[req.params.id].userID !== req.cookies.user_id) {
+  if (urlDatabase[req.params.id].userID !== req.session.user_id) {
     res.status(403).render("index", templateVars);
     return;
   }
@@ -253,7 +263,7 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.use((req, res) => {
-  // templateVars.currentUser = users[req.cookies.user_id];
+  // templateVars.currentUser = users[req.session.user_id];
   templateVars.message = "Oops, you can't do that.";
   res.status(404).render("index", templateVars);
 });
