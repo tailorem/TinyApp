@@ -1,8 +1,7 @@
 // Require and use modules
 const express = require("express");
 const app = express();
-// const users = require("./users");
-// const urlDatabase = require("./urlDatabase");
+// const bcrypt = require(bcrypt);
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -92,9 +91,14 @@ const templateVars = {
 
 // On requests, redirect to "urls"
 app.get("/", (req, res) => {
+  if (req.cookies) {
+    console.log("where are they");
+    res.redirect("/login");
+  } else {
+    res.redirect(301, "/urls");
+  }
   // if logged in, redirect to "/urls"
   // else, redirect to "/login"
-  res.redirect(301, "/urls");
 });
 
 // Route handler for "urls"
@@ -263,9 +267,9 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.use((req, res) => {
-  templateVars.currentUser = users[req.cookies.user_id];
+  // templateVars.currentUser = users[req.cookies.user_id];
   templateVars.message = "Oops, you can't do that.";
-  res.status(404).render("404", templateVars);
+  res.status(404).render("index", templateVars);
 });
 
 // Start listening
