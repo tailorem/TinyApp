@@ -44,7 +44,7 @@ const urlDatabase = {
   },
   "9sm5xK": {
     longURL: "http://www.google.com",
-    userID: users.user4RandomID.id
+    userID: users.userRandomID.id
   },
   "6ls8sJ": {
     longURL: "http://www.inspire.ca",
@@ -64,13 +64,30 @@ function randomStringGen() {
 }
 
 function urlsForUser(id) {
-  const urls = {};
+  let output = {};
   for (url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      urls[url] = url;
+    let item = urlDatabase[url];
+    if (item.userID === id) {
+      output[url] = {
+        shortURL: item,
+        longURL: item.longURL
+      }
     }
   }
+  return output;
 }
+
+// const templateVars = {
+//   urls: urlDatabase,
+//   users: users,
+//   currentUser: null,
+//   message: null
+// };
+
+// templateVars.currentUser = users[req.cookies.user_id];
+// templateVars.message = "";
+// templateVars.shortURL = req.params.id;
+// templateVars.longURL = urlDatabase[req.params.id].longURL;
 
 
 // On requests, redirect to "urls"
@@ -83,11 +100,12 @@ app.get("/", (req, res) => {
 // Route handler for "urls"
 app.get("/urls", (req, res) => {
   const templateVars = {
-    urls: urlDatabase,
+    urls: urlsForUser(req.cookies.user_id),
     users: users,
     currentUser: users[req.cookies.user_id],
     message: null
   };
+  // console.log(templateVars.urls);
   res.render("index", templateVars);
 });
 
@@ -108,20 +126,26 @@ app.get("/urls/new", (req, res) => {
 
 // Route handler for "urls/:id"
 app.get("/urls/:id", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    users: users,
-    currentUser: users[req.cookies.user_id],
-    message: null,
-    shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL,
-  };
   // console.log(templateVars.longURL);
   // console.log(templateVars.shortURL);
   // if short URL does not exist, render 404
   if (!urlDatabase.hasOwnProperty(req.params.id)) {
-    res.status(404).render("404", templateVars);
+    // templateVars.longURL = null;
+    res.status(404).render("index", {
+      urls: urlDatabase,
+      users: users,
+      currentUser: users[req.cookies.user_id],
+      message: "Oops, looks like that page doesn't exist."
+    });
   } else {
+    const templateVars = {
+      urls: urlDatabase,
+      users: users,
+      currentUser: users[req.cookies.user_id],
+      message: null,
+      shortURL: req.params.id,
+      longURL: urlDatabase[req.params.id]
+    };
     // console.log(urlDatabase[req.params.id].longURL)
     res.render("show", templateVars);
   }
@@ -138,10 +162,11 @@ app.get("/u/:id", (req, res) => {
     currentUser: users[req.cookies.user_id],
     message: null,
     shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL,
+    longURL: urlDatabase[req.params.id],
   };
   if (!longURL) {
-    res.status(404).render("404", templateVars);
+    templateVars.message = "Oops, looks like that page doesn't exist.";
+    res.status(404).render("index", templateVars);
   } else {
   res.redirect(301, `/${longURL}`);
   }
@@ -157,6 +182,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[random] = {};
   urlDatabase[random].longURL = link;
   urlDatabase[random].userID = req.cookies.user_id;
+  console.log(urlDatabase[random]);
   res.redirect(301, `/urls/${random}`);
 });
 

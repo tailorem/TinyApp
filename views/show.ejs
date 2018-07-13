@@ -6,10 +6,11 @@
 </head>
 <body>
   <%- include('partials/_header') %>
+  <% if (currentUser) { %>
   <table>
     <tr>
       <td>
-        <p><a href="<%= longURL %>"> <%= `${shortURL}` %></a><%= ` → (${longURL})` %></p>
+        <p><a href="<%= longURL.longURL %>"> <%= `http://localhost:8080/${shortURL}` %></a><%= ` → (${longURL.longURL})` %></p>
       </td>
     </tr>
     <tr>
@@ -24,6 +25,7 @@
     </tr>
   </table>
   <p><a href="/urls/new">Create a new short URL</a> <a href="/urls/">View my short URLs</a></p>
+  <% } %>
 </body>
 </html>
 

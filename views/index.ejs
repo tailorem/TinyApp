@@ -15,7 +15,7 @@
       <% for(url in urls) { %>
         <tr>
           <td>
-            <a href="<%= urls[url].longURL %>" id="shortLink"><%= `${url}` %></a><%= ` → ${urls[url].longURL}` %>
+            <a href="<%= urls[url].longURL %>"><%= `${url}` %></a><%= ` → ${urls[url].longURL}` %>
           </td>
           <td>
             <a href="/urls/<%= url %>">Edit</a>
