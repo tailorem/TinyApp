@@ -5,7 +5,9 @@
   <title>TinyApp - Current URLS</title>
 </head>
 <body>
-  <h2>TinyApp</h2>
+  <%- include('partials/_header') %>
+<!--   <h2>TinyApp</h2>
+  <p>Don't have a login? Please <a href="/register">register</a>.</p> -->
   <% if (message) { %>
     <p><%= message %></p>
   <% } %>

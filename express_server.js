@@ -13,16 +13,6 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 const PORT = 8080;
 
-function randomStringGen() {
-  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  chars = chars.split("");
-  let result = "";
-  for (char in chars) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result.slice(0, 6);
-}
-
 
 const users = {
   "userRandomID": {
@@ -46,10 +36,40 @@ const users = {
     password: "green"
   }
 }
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
-  "6ls8sJ": "http://www.inspire.ca"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: users.userRandomID.id
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: users.user4RandomID.id
+  },
+  "6ls8sJ": {
+    longURL: "http://www.inspire.ca",
+    userID: users.user4RandomID.id
+  }
+}
+
+
+function randomStringGen() {
+  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  chars = chars.split("");
+  let result = "";
+  for (char in chars) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result.slice(0, 6);
+}
+
+function urlsForUser(id) {
+  const urls = {};
+  for (url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      urls[url] = url;
+    }
+  }
 }
 
 
@@ -64,41 +84,66 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    currentUser: users[req.cookies.user_id]
+    users: users,
+    currentUser: users[req.cookies.user_id],
+    message: null
   };
   res.render("index", templateVars);
 });
 
 // Rreate route handler for "new"
 app.get("/urls/new", (req, res) => {
-  const templateVars = { currentUser: users[req.cookies.user_id] };
-  res.render("new", templateVars);
+  const templateVars = {
+    urls: urlDatabase,
+    users: users,
+    currentUser: users[req.cookies.user_id],
+    message: null
+  };
+  if (!req.cookies.user_id) {
+    res.redirect("/login");
+  } else {
+    res.render("new", templateVars);
+  }
 });
 
 // Route handler for "urls/:id"
 app.get("/urls/:id", (req, res) => {
-  // console.log([req.params.id]);
   const templateVars = {
+    urls: urlDatabase,
+    users: users,
+    currentUser: users[req.cookies.user_id],
+    message: null,
     shortURL: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    currentUser: users[req.cookies.user_id]
+    longURL: urlDatabase[req.params.id].longURL,
   };
+  // console.log(templateVars.longURL);
+  // console.log(templateVars.shortURL);
   // if short URL does not exist, render 404
   if (!urlDatabase.hasOwnProperty(req.params.id)) {
     res.status(404).render("404", templateVars);
   } else {
+    // console.log(urlDatabase[req.params.id].longURL)
     res.render("show", templateVars);
   }
 });
 
 // Route handler for "/u/:id"
 app.get("/u/:id", (req, res) => {
-  const shortURL = (req.originalUrl).slice(3);
+  const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL];
+  console.log(req.params.id);
+  const templateVars = {
+    urls: urlDatabase,
+    users: users,
+    currentUser: users[req.cookies.user_id],
+    message: null,
+    shortURL: req.params.id,
+    longURL: urlDatabase[req.params.id].longURL,
+  };
   if (!longURL) {
-    res.status(404).render("404", { currentUser: users[req.cookies.user_id] });
+    res.status(404).render("404", templateVars);
   } else {
-  res.redirect(301, `${longURL}`);
+  res.redirect(301, `/${longURL}`);
   }
 });
 
@@ -109,8 +154,9 @@ app.post("/urls", (req, res) => {
   if (!link.startsWith("http://") /* || !link.startsWith("https://") */) {
     link = "http://" + link;
   }
-  urlDatabase[random] = link;
-  // console.log(urlDatabase);
+  urlDatabase[random] = {};
+  urlDatabase[random].longURL = link;
+  urlDatabase[random].userID = req.cookies.user_id;
   res.redirect(301, `/urls/${random}`);
 });
 
@@ -131,6 +177,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.get("/login", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
+    users: users,
     currentUser: users[req.cookies.user_id],
     message: null
   };
@@ -139,30 +186,45 @@ app.get("/login", (req, res) => {
 
 // Route handler for "register"
 app.get("/register", (req, res) => {
-  res.render("register", {
+  const templateVars = {
+    urls: urlDatabase,
+    users: users,
     currentUser: users[req.cookies.user_id],
     message: null
-  });
+  };
+  res.render("register", templateVars);
 });
 
 // Route handler for "/login" (POST)
 app.post("/login", (req, res) => {
-  // console.log(req.body.email);
+  const templateVars = {
+    urls: urlDatabase,
+    users: users,
+    currentUser: users[req.cookies.user_id],
+    message: "Oops, you have entered an incorrect email or password!"
+  };
   for (let user in users) {
-    // console.log(users[user].email);
     if (req.body.email === users[user].email && req.body.password === users[user].password) {
       res.cookie("user_id", users[user].id);
       res.redirect("/");
       return;
     }
   }
-  res.status(403).render("login", { message: "Oops, you have entered an incorrect email or password!" });
+  res.status(403).render("login", templateVars);
 });
 
 // Route handler for "register"
 app.post("/register", (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    users: users,
+    currentUser: users[req.cookies.user_id],
+    message: null
+  };
+
   if (!req.body.email || !req.body.password) {
-    res.status(400).render("register", { message: "You must enter a valid email and password." });
+    templateVars.message = "Please enter a valid email and a password."
+    res.status(400).render("register", templateVars);
     return;
   }
 
@@ -170,7 +232,8 @@ app.post("/register", (req, res) => {
 
   for (let user in users) {
     if (users[user].email === req.body.email) {
-    res.status(400).render("register", { message: "That email is already in use." });
+      templateVars.message = "That email is already in use."
+      res.status(400).render("register", templateVars);
       return;
     }
   }
@@ -192,18 +255,36 @@ app.post("/logout", (req, res) => {
 
 // Route handler for editing urls (POST)
 app.post("/urls/:id/edit", (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    users: users,
+    currentUser: users[req.cookies.user_id],
+    message: "Oops, you can't do that."
+  };
+  // console.log(urlDatabase[req.params.id].userID);
+  // console.log(req.cookies.user_id)
+  if (urlDatabase[req.params.id].userID !== req.cookies.user_id) {
+    res.status(403).render("index", templateVars);
+    return;
+  }
   if (urlDatabase.hasOwnProperty(req.params.id)) {
     if (!req.body.newURL.toString().startsWith("http://")) {
-      urlDatabase[req.params.id] = `http://${req.body.newURL}`;
+      urlDatabase[req.params.id].longURL = `http://${req.body.newURL}`;
     } else {
-      urlDatabase[req.params.id] = req.body.newURL;
+      urlDatabase[req.params.id].longURL = req.body.newURL;
     }
   }
   res.redirect("/urls");
 });
 
 app.use((req, res) => {
-  res.status(404).render("404", { currentUser: users[req.cookies.user_id] });
+  const templateVars = {
+    urls: urlDatabase,
+    users: users,
+    currentUser: users[req.cookies.user_id],
+    message: "Oops, you can't do that."
+  };
+  res.status(404).render("404", templateVars);
 });
 
 // Start listening
