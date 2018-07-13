@@ -2,6 +2,9 @@
 <html lang="en">
   <%- include('partials/_header') %>
   <body>
+    <% if (!currentUser) { %>
+      <p>Already have an account? <a href="/login">Login</a> here!</p>
+    <% } %>
     <% if (message) { %>
       <p><%= message %></p>
     <% } %>

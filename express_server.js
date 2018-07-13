@@ -1,7 +1,7 @@
 // Require and use modules
 const express = require("express");
 const app = express();
-const bcrypt = require(bcrypt);
+const bcrypt = require("bcrypt");
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -14,40 +14,25 @@ const PORT = 8080;
 
 
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
+  "test": {
+    id: "test",
     email: "test@test.com",
-    password: "test"
-  },
- "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  },
-  "user3RandomID": {
-    id: "user3RandomID",
-    email: "user3@example.com",
-    password: "purple"
-  },
- "user4RandomID": {
-    id: "user4RandomID",
-    email: "user4@example.com",
-    password: "green"
+    password: "$2b$12$IW2WA.wRH7mFeadvgJArpuGicsQLlDP0hJg.mYa6m3gJpcbt/.Ppm"
   }
 }
 
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
-    userID: users.userRandomID.id
+    userID: users.test.id
   },
   "9sm5xK": {
     longURL: "http://www.google.com",
-    userID: users.userRandomID.id
+    userID: users.test.id
   },
   "6ls8sJ": {
     longURL: "http://www.inspire.ca",
-    userID: users.user4RandomID.id
+    userID: users.test.id
   }
 }
 
@@ -203,7 +188,7 @@ app.get("/register", (req, res) => {
 app.post("/login", (req, res) => {
   templateVars.currentUser = users[req.cookies.user_id];
   for (let user in users) {
-    if (req.body.email === users[user].email && req.body.password === users[user].password) {
+    if (req.body.email === users[user].email && bcrypt.compareSync(req.body.password, users[user].password)) {
       res.cookie("user_id", users[user].id);
       res.redirect("/");
       return;
@@ -236,8 +221,9 @@ app.post("/register", (req, res) => {
   users[userID] = {
     id: userID,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, 12)
   }
+  console.log(users[userID].password);
   res.cookie("user_id", userID);
   res.redirect("/urls");
 });
@@ -245,7 +231,7 @@ app.post("/register", (req, res) => {
 // Route handler for "/logout" (POST)
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 // Route handler for editing urls (POST)
