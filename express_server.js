@@ -1,3 +1,5 @@
+//jshint esversion: 6
+
 // Require and use modules
 const cookieSession = require("cookie-session");
 const express = require("express");
@@ -32,7 +34,7 @@ const users = {
     email: "nottest@test.com",
     password: "$2b$12$yBIecehm8TuLExuuqDG1leF7eCiuKZN5U6tFbckVDLDdhhgI0oJT6"
   }
-}
+};
 
 const urlDatabase = {
   "b2xVn2": {
@@ -47,28 +49,28 @@ const urlDatabase = {
     longURL: "http://www.inspire.ca",
     userID: users.nottest.id
   }
-}
+};
 
 
 function randomStringGen() {
   let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   chars = chars.split("");
   let result = "";
-  for (char in chars) {
+  chars.forEach(char => {
     result += chars[Math.floor(Math.random() * chars.length)];
-  }
+  });
   return result.slice(0, 6);
 }
 
 function urlsForUser(id) {
   let output = {};
-  for (url in urlDatabase) {
+  for (let url in urlDatabase) {
     let item = urlDatabase[url];
     if (item.userID === id) {
       output[url] = {
         shortURL: item,
         longURL: item.longURL
-      }
+      };
     }
   }
   return output;
@@ -166,7 +168,7 @@ app.post("/urls", (req, res) => {
     res.render("index");
   }
   const random = randomStringGen().toString();
-  const link = (req.body.longURL).toString();
+  let link = (req.body.longURL).toString();
   if (!link.startsWith("http://") /* || !link.startsWith("https://") */) {
     link = "http://" + link;
   }
@@ -252,7 +254,7 @@ app.post("/register", (req, res) => {
     id: userID,
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 12)
-  }
+  };
   req.session.user_id = userID;
   templateVars.currentUser = users[req.session.user_id];
   templateVars.message = null;
