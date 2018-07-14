@@ -14,10 +14,15 @@
       <% for(url in urls) { %>
         <tr>
           <td>
-            <a href="<%= urls[url].longURL %>"><%= `${url}` %></a><%= ` → ${urls[url].longURL}` %>
+            <a href="<%= urls[url].longURL %>"><%= `http://localhost:8080/${url}` %></a>
           </td>
           <td>
-            <a href="/urls/<%= url %>">Edit</a>
+            <p style="text-align: left; margin: 0px;"><%= ` → ${urls[url].longURL}` %></p>
+          </td>
+          <td>
+            <form method="GET" action="/urls/<%= url %>" style='display:inline;'>
+              <button>EDIT</button>
+            </form>
             <form method="POST" action="/urls/<%= url %>/delete" style='display:inline;'>
               <button>DELETE</button>
             </form>
@@ -25,9 +30,16 @@
         </tr>
       <% } %>
     </table>
-    <p><a href="/urls/new">Add a short URL</a>!</p>
+    <p><a href="/urls/new">Add a short URL</a></p>
   <% } else {%>
-  <p>Don't have an account? Please <a href="/register">register</a> first.</p>
+    <p>Oops, don't forget to log in!</p>
+    <form method="POST" action="/login">
+      <small>Log in:</small>
+      <input type="email" name="email" placeholder="email@example.com" style='display:inline;'>
+      <input type="password" name="password" placeholder="password" style='display:inline;'>
+      <button>LOGIN</button>
+    </form>
+    <p>Don't have an account? You can <a href="/register">register</a> here.</p>
   <% } %>
 </body>
 </html>

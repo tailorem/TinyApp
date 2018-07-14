@@ -1,9 +1,35 @@
 <head>
   <meta charset="utf-8">
   <title>TinyApp</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Slab" rel="stylesheet">
 
-  <h2>TinyApp</h2>
+  <link href="https://fonts.googleapis.com/css?family=Nunito|Playfair+Display" rel="stylesheet">
+
+  <style type="text/css">
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Playfair Display', serif;
+    }
+    a {
+      color: #1C9283;
+    }
+      body {
+      background-color: #D6EDE6;
+      font-family: 'Nunito', sans-serif;
+      text-align: center;
+    }
+    table {
+      padding-top: 0px;
+      margin-top: 0px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    form {
+      margin: 10px;
+    }
+  </style>
+</head>
+
+<dir style="padding-top: 50px;">
+  <h1>TinyApp</h1>
   <% if (currentUser) { %>
     <table>
       <tr>
@@ -18,4 +44,4 @@
       </tr>
     </table>
   <% } %>
-</head>
+</dir>

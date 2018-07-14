@@ -6,17 +6,13 @@
     <table>
       <tr>
         <td>
-          <p><a href="<%= longURL.longURL %>"> <%= `http://localhost:8080/${shortURL}` %></a><%= ` → (${longURL.longURL})` %></p>
+          <p><a href="<%= longURL.longURL %>"> <%= `localhost:8080/${shortURL}` %></a> → </p>
         </td>
-      </tr>
-      <tr>
         <td>
-          <p>
             <form method="POST" action="/urls/<%= shortURL %>/edit" style='display:inline;'>
-              <input type="text" name="newURL" value="http://">
-              <button type="submit">EDIT</button>
+              <input type="text" name="newURL" value="<%= longURL.longURL %>" style="width: 250px;">
+              <button type="submit">UPDATE</button>
             </form>
-          </p>
         </td>
       </tr>
     </table>
