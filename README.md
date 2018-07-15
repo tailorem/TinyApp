@@ -4,9 +4,11 @@ TinyApp is a full stack web application built with Node.js and Express.
 
 ## Final Product
 
-!["Screenshot of login page"](https://github.com/tailorem/TinyApp/blob/master/docs/login_page.png?raw=true)
-!["Screenshot of urls list"](https://github.com/tailorem/TinyApp/blob/master/docs/urls_page.png?raw=true)
-!["Screenshot of login page"](https://github.com/tailorem/TinyApp/blob/master/docs/urls_page.png?raw=true)
+!["Screenshot of login page"](https://github.com/tailorem/TinyApp/blob/master/docs/login.png?raw=true)
+!["Screenshot of registration page"](https://github.com/tailorem/TinyApp/blob/master/docs/register.png?raw=true)
+!["Screenshot of urls index"](https://github.com/tailorem/TinyApp/blob/master/docs/index.png?raw=true)
+!["Screenshot of new url page"](https://github.com/tailorem/TinyApp/blob/master/docs/newURL.png?raw=true)
+!["Screenshot of edit page"](https://github.com/tailorem/TinyApp/blob/master/docs/edit.png?raw=true)
 
 ## Dependencies
 
