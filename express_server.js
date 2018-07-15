@@ -8,9 +8,6 @@ const app = express();
 app.use(cookieSession({
   name: "session",
   keys: ["secret-test-key", "other-test-key"],
-
-  // Cookie Options
-  // maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 
 const bcrypt = require("bcrypt");
@@ -23,19 +20,21 @@ app.set("view engine", "ejs");
 const PORT = 8080;
 
 
+// Hardcoded user database for testing purposes
 const users = {
   "test": {
     id: "test",
     email: "test@test.com",
     password: "$2b$12$IW2WA.wRH7mFeadvgJArpuGicsQLlDP0hJg.mYa6m3gJpcbt/.Ppm"
   },
-  "nottest": {
-    id: "nottest",
-    email: "nottest@test.com",
+  "test2": {
+    id: "test2",
+    email: "test2@test.com",
     password: "$2b$12$yBIecehm8TuLExuuqDG1leF7eCiuKZN5U6tFbckVDLDdhhgI0oJT6"
   }
 };
 
+// Hardcoded URL database for testing purposes
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
@@ -47,11 +46,11 @@ const urlDatabase = {
   },
   "6ls8sJ": {
     longURL: "http://www.inspire.ca",
-    userID: users.nottest.id
+    userID: users.test2.id
   }
 };
 
-
+// Function returns a random string for user IDs and short URLs
 function randomStringGen() {
   let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   chars = chars.split("");
@@ -62,6 +61,7 @@ function randomStringGen() {
   return result.slice(0, 6);
 }
 
+// returns an object of specific user URLs
 function urlsForUser(id) {
   let output = {};
   for (let url in urlDatabase) {
@@ -76,6 +76,7 @@ function urlsForUser(id) {
   return output;
 }
 
+// Default EJS template variables
 const templateVars = {
   urls: urlDatabase,
   users: users,
@@ -83,13 +84,7 @@ const templateVars = {
   message: null
 };
 
-// templateVars.currentUser = users[req.session.user_id];
-// templateVars.message = "";
-// templateVars.shortURL = req.params.id;
-// templateVars.longURL = urlDatabase[req.params.id].longURL;
-
-
-// On requests, redirect to "urls"
+// Route handler for "/" GET requests
 app.get("/", (req, res) => {
   if (req.session.user_id) {
     // console.log("where are they");
@@ -101,7 +96,7 @@ app.get("/", (req, res) => {
   // else, redirect to "/login"
 });
 
-// Route handler for "urls"
+// Route handler for "/urls" GET requests
 app.get("/urls", (req, res) => {
   // console.log(req.session);
   templateVars.urls = urlsForUser(req.session.user_id);
@@ -110,7 +105,7 @@ app.get("/urls", (req, res) => {
   res.render("index", templateVars);
 });
 
-// Rreate route handler for "new"
+// Route handler for "/urls/new" GET requests
 app.get("/urls/new", (req, res) => {
   templateVars.currentUser = users[req.session.user_id];
   if (!req.session.user_id) {
@@ -120,7 +115,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-// Route handler for "urls/:id"
+// Route handler for "/urls/:id" GET requests
 app.get("/urls/:id", (req, res) => {
   if (!req.session.user_id) {
     res.render("login", templateVars);
@@ -132,7 +127,7 @@ app.get("/urls/:id", (req, res) => {
   templateVars.longURL = urlDatabase[req.params.id];
 
   if (!urlDatabase.hasOwnProperty(req.params.id)) {
-    console.log(req.params);
+    // console.log(req.params);
     templateVars.message = "Oops, looks like that page doesn't exist.";
     res.status(404).render("index", templateVars);
     return;
@@ -165,7 +160,8 @@ app.get("/u/:id", (req, res) => {
 // Route handler for "/urls" (POST)
 app.post("/urls", (req, res) => {
   if (!req.session.user_id) {
-    res.render("index");
+    res.render("index", templateVars);
+    return;
   }
   const random = randomStringGen().toString();
   let link = (req.body.longURL).toString();
@@ -175,6 +171,8 @@ app.post("/urls", (req, res) => {
   urlDatabase[random] = {};
   urlDatabase[random].longURL = link;
   urlDatabase[random].userID = req.session.user_id;
+
+  // templateVars.message = "Success! Here's your new short ULR:";
   // console.log(urlDatabase[random]);
   res.redirect(`/urls/${random}`);
 });
@@ -186,7 +184,8 @@ app.post("/urls", (req, res) => {
 // Route handler for deconsting urls (POST)
 app.post("/urls/:id/delete", (req, res) => {
   if (!req.session.user_id) {
-    res.render("login");
+    res.status(401).render("login", templateVars);
+    return;
   }
   for (let url in urlDatabase) {
     if (url === req.params.id) {

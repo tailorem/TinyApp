@@ -2,22 +2,32 @@
 <html lang="en">
   <%- include('partials/_header') %>
   <body>
-    <% if (currentUser) { %>
-    <table>
-      <tr>
-        <td>
-          <p><a href="<%= longURL.longURL %>"> <%= `localhost:8080/${shortURL}` %></a> → </p>
-        </td>
-        <td>
-            <form method="POST" action="/urls/<%= shortURL %>/edit" style='display:inline;'>
-              <input type="text" name="newURL" value="<%= longURL.longURL %>" style="width: 250px;">
-              <button type="submit">UPDATE</button>
-            </form>
-        </td>
-      </tr>
-    </table>
-    <p><a href="/urls/new">Create a new short URL</a> <a href="/urls/">View my short URLs</a></p>
-    <% } %>
+    <div class="container">
+      <% if (currentUser) { %>
+        <form method="POST" action="/logout">
+          <p>Logged in as <%= currentUser.email %> <button>LOGOUT</button></p>
+        </form>
+      <% } %>
+      <% if (message) { %>
+      <p><%= message %></p>
+      <% } %>
+      <% if (currentUser) { %>
+      <table>
+        <tr>
+          <td>
+            <p><a href="<%= longURL.longURL %>"> <%= `.../${shortURL}` %></a> → </p>
+          </td>
+          <td>
+              <form method="POST" action="/urls/<%= shortURL %>/edit" style='display:inline;'>
+                <input type="text" name="newURL" value="<%= longURL.longURL %>" style="width: 250px;">
+                <button type="submit">UPDATE</button>
+              </form>
+          </td>
+        </tr>
+      </table>
+      <p><a href="/urls/new">Create a new short URL</a> | <a href="/urls/">View my short URLs</a></p>
+      <% } %>
+    </div>
   </body>
 </html>
 

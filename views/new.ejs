@@ -2,13 +2,20 @@
 <html lang="en">
   <%- include partials/_header %>
   <body>
-    <form action="/urls" method="POST">
-      <label for="longURL">Enter a URL:</label>
-      <input id="longURL" type="text" name="longURL" value="http://" style="width: 300px;">
-      <input type="submit" value="Submit">
-    </form>
-    <p>
-      <a href="/urls/">View my short URLs</a>
-    </p>
+    <div class="container">
+      <% if (currentUser) { %>
+        <form method="POST" action="/logout">
+          <p>Logged in as <%= currentUser.email %> <button>LOGOUT</button></p>
+        </form>
+      <% } %>
+      <form action="/urls" method="POST">
+        <label for="longURL">Enter a URL:</label>
+        <input id="longURL" type="text" name="longURL" value="http://" style="width: 300px;">
+        <input type="submit" value="Submit">
+      </form>
+      <p>
+        <a href="/urls/">View my short URLs</a>
+      </p>
+    </div>
   </body>
 </html>

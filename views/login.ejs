@@ -2,16 +2,18 @@
 <html lang="en">
   <body>
   <%- include('partials/_header') %>
-    <h4>Welcome to TinyApp!</h4>
-    <% if (message) { %>
-      <p><%= message %></p>
-    <% } %>
-    <form method="POST" action="/login">
-      <small>Log in:</small>
-      <input type="email" name="email" placeholder="email@example.com" style='display:inline;'>
-      <input type="password" name="password" placeholder="password" style='display:inline;'>
-      <button>LOGIN</button>
-    </form>
-    <p>Don't have an account? Please <a href="/register">register</a> first.</p>
+    <div class="container" id="login">
+      <h2>Welcome to TinyApp!</h2>
+      <form method="POST" action="/login">
+        <small>Log in:</small>
+        <input type="email" name="email" placeholder="email@example.com" style='display:inline;'>
+        <input type="password" name="password" placeholder="password" style='display:inline;'>
+        <button>LOGIN</button>
+      </form>
+      <% if (message) { %>
+        <p><%= message %></p>
+      <% } %>
+      <p>Don't have an account? Please <a href="/register">register</a> first.</p>
+    </div>
   </body>
 </html>

@@ -5,43 +5,64 @@
   <link href="https://fonts.googleapis.com/css?family=Nunito|Playfair+Display" rel="stylesheet">
 
   <style type="text/css">
-    h1, h2, h3, h4, h5, h6 {
-      font-family: 'Playfair Display', serif;
+    h1 {
+      color: white;
+      font-family: "Playfair Display", serif;
+      font-size: 4em;
+      margin: 10px;
+      margin-top: 60px;
     }
     a {
-      color: #1C9283;
+      color: #0096ff;
+      text-decoration: none;
     }
-      body {
-      background-color: #D6EDE6;
+    a:hover {
+      color: purple;
+    }
+    body {
+      background-color: #58aeea;
       font-family: 'Nunito', sans-serif;
-      text-align: center;
     }
     table {
       padding-top: 0px;
-      margin-top: 0px;
+      /*margin-top: 0px;*/
       margin-left: auto;
       margin-right: auto;
+      text-align: left;
+      max-width: 100%;
     }
     form {
-      margin: 10px;
+      display: inline;
+      margin: 0px;
+      padding: 0px;
+    }
+    .container {
+      border-radius: 20px;
+      background: #fff;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 20px;
+      text-align: center;
+      max-width: 600px;
+    }
+    #login {
+      max-width: 400px;
+    }
+    #header {
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+    .longURL {
+      margin: 0px;
+      width: 300px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   </style>
 </head>
 
-<dir style="padding-top: 50px;">
-  <h1>TinyApp</h1>
-  <% if (currentUser) { %>
-    <table>
-      <tr>
-        <td>
-          <p>Logged in as <%= currentUser.email %></p>
-        </td>
-        <td>
-          <form method="POST" action="/logout">
-            <button>LOGOUT</button>
-          </form>
-        </td>
-      </tr>
-    </table>
-  <% } %>
-</dir>
+<div id="header">
+    <h1>TinyApp</h1>
+</div>
