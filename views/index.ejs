@@ -29,7 +29,7 @@
               <form method="GET" action="/urls/<%= url %>" style='display:inline; margin-left: 10px;'>
                 <button>EDIT</button>
               </form>
-              <form method="POST" action="/urls/<%= url %>/delete" style='display:inline;'>
+              <form method="POST" action="/urls/<%= url %>?_method=DELETE" style='display:inline;'>
                 <button>DELETE</button>
               </form>
             </td>

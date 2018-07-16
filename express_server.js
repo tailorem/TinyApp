@@ -1,10 +1,13 @@
 //jshint esversion: 6
 
 // Require and use modules
-const cookieSession = require("cookie-session");
 const express = require("express");
 const app = express();
 
+var methodOverride = require('method-override');
+app.use(methodOverride('_method'));
+
+const cookieSession = require("cookie-session");
 app.use(cookieSession({
   name: "session",
   keys: ["secret-test-key", "other-test-key"],
@@ -182,7 +185,7 @@ app.post("/urls", (req, res) => {
 // });
 
 // Route handler for deconsting urls (POST)
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id", (req, res) => {
   if (!req.session.user_id) {
     res.status(401).render("login", templateVars);
     return;
@@ -268,7 +271,7 @@ app.post("/logout", (req, res) => {
 });
 
 // Route handler for editing urls (POST)
-app.post("/urls/:id/edit", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   templateVars.currentUser = users[req.session.user_id];
   if (urlDatabase[req.params.id].userID !== req.session.user_id) {
     res.status(403).render("index", templateVars);

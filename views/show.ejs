@@ -18,7 +18,7 @@
             <p><a href="<%= longURL.longURL %>"> <%= `.../${shortURL}` %></a> → </p>
           </td>
           <td>
-              <form method="POST" action="/urls/<%= shortURL %>/edit" style='display:inline;'>
+              <form method="POST" action="/urls/<%= shortURL %>?_method=PUT" style='display:inline;'>
                 <input type="text" name="newURL" value="<%= longURL.longURL %>" style="width: 250px;">
                 <button type="submit">UPDATE</button>
               </form>
