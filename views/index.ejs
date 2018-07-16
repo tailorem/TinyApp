@@ -13,8 +13,10 @@
       <p><%= message %></p>
     <% } %>
     <% if (currentUser) { %>
-      <% if (urls.length >= 1) { %>
-        <h4>Your Short URLs</h4>
+      <% if (Object.keys(urls).length > 0) { %>
+        <h3>Your Short URLs</h3>
+      <% } else { %>
+        <p>You don't have any short URLs at the moment!</p>
       <% } %>
       <table>
         <% for(url in urls) { %>

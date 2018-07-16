@@ -10,7 +10,7 @@ app.use(methodOverride('_method'));
 const cookieSession = require("cookie-session");
 app.use(cookieSession({
   name: "session",
-  keys: ["secret-test-key", "other-test-key"],
+  keys: [randomStringGen(), randomStringGen(), randomStringGen()],
 }));
 
 const bcrypt = require("bcrypt");
@@ -23,7 +23,7 @@ app.set("view engine", "ejs");
 const PORT = 8080;
 
 
-// Hardcoded user database for testing purposes
+// User "database" with hard-coded users for testing purposes
 const users = {
   "test": {
     id: "test",
@@ -37,7 +37,7 @@ const users = {
   }
 };
 
-// Hardcoded URL database for testing purposes
+// URL "database" with hard-coded URLs for testing purposes
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
@@ -53,7 +53,7 @@ const urlDatabase = {
   }
 };
 
-// Function returns a random string for user IDs and short URLs
+// Returns a random string for user IDs and short URLs
 function randomStringGen() {
   let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   chars = chars.split("");
@@ -64,7 +64,7 @@ function randomStringGen() {
   return result.slice(0, 6);
 }
 
-// returns an object of specific user URLs
+// Returns an object of specific user URLs
 function urlsForUser(id) {
   let output = {};
   for (let url in urlDatabase) {
@@ -79,13 +79,16 @@ function urlsForUser(id) {
   return output;
 }
 
-// Default EJS template variables
-const templateVars = {
-  urls: urlDatabase,
-  users: users,
-  currentUser: null,
-  message: null
-};
+// Generates EJS template variables
+function templateVars(user, text, specificUrls) {
+  let tempVars = {
+    urls: specificUrls || urlDatabase,
+    users: users,
+    currentUser: user || null,
+    message: text || null
+  };
+  return tempVars;
+}
 
 // Route handler for "/" GET requests
 app.get("/", (req, res) => {
@@ -102,59 +105,65 @@ app.get("/", (req, res) => {
 // Route handler for "/urls" GET requests
 app.get("/urls", (req, res) => {
   // console.log(req.session);
-  templateVars.urls = urlsForUser(req.session.user_id);
-  templateVars.currentUser = users[req.session.user_id];
+  // templateVars.urls = urlsForUser(req.session.user_id);
+  // templateVars.currentUser = users[req.session.user_id];
   // console.log(users);
-  res.render("index", templateVars);
+  res.render("index",
+    templateVars(users[req.session.user_id], null, urlsForUser(req.session.user_id)));
 });
 
 // Route handler for "/urls/new" GET requests
 app.get("/urls/new", (req, res) => {
-  templateVars.currentUser = users[req.session.user_id];
+  // templateVars.currentUser = users[req.session.user_id];
   if (!req.session.user_id) {
     res.redirect("/login");
   } else {
-    res.render("new", templateVars);
+    res.render("new", templateVars(users[req.session.user_id]));
   }
 });
 
 // Route handler for "/urls/:id" GET requests
 app.get("/urls/:id", (req, res) => {
   if (!req.session.user_id) {
-    res.render("login", templateVars);
+    res.render("login", templateVars());
     return;
   }
-
-  templateVars.currentUser = users[req.session.user_id];
-  templateVars.shortURL = req.params.id;
-  templateVars.longURL = urlDatabase[req.params.id];
 
   if (!urlDatabase.hasOwnProperty(req.params.id)) {
     // console.log(req.params);
-    templateVars.message = "Oops, looks like that page doesn't exist.";
-    res.status(404).render("index", templateVars);
+    // templateVars.message = "Oops, looks like that page doesn't exist.";
+    res.status(404).render("index", templateVars(users[req.session.user_id] || null, "Oops, looks like that page doesn't exist."));
     return;
   }
   if (urlDatabase[req.params.id].userID !== req.session.user_id) {
-    templateVars.message = "Oops, that doesn't seem to be one of your URLs!";
-    res.status(401).render("index", templateVars);
+    // templateVars.message = "Oops, that doesn't seem to be one of your URLs!";
+    res.status(401).render("index", templateVars(users[req.session.user_id], "Oops, that doesn't seem to be one of your URLs!"));
     return;
   }
 
-    res.render("show", templateVars);
+    res.render("show", {
+      currentUser: users[req.session.user_id],
+      message: null,
+      shortURL: req.params.id,
+      longURL: urlDatabase[req.params.id]
+    });
 });
 
 // Route handler for "/u/:id"
 app.get("/u/:id", (req, res) => {
-  const shortURL = req.params.id;
-  let longURL = urlDatabase[shortURL];
+  // const shortURL = req.params.id;
+  // let longURL = urlDatabase[shortURL];
   templateVars.currentUser = users[req.session.user_id];
   templateVars.shortURL = req.params.id;
-  longURL = urlDatabase[req.params.id];
+  let longURL = urlDatabase[req.params.id];
 
   if (!longURL) {
-    templateVars.message = "Oops, looks like that page doesn't exist.";
-    res.status(404).render("index", templateVars);
+    // templateVars.message = "Oops, looks like that page doesn't exist.";
+    res.status(404).render("index", {
+      currentUser: users[req.session.user_id],
+      message: "Oops, looks like that page doesn't exist.",
+      shortURL: req.params.id
+    });
   } else {
     res.redirect(301, `/${longURL}`);
   }
@@ -163,7 +172,7 @@ app.get("/u/:id", (req, res) => {
 // Route handler for "/urls" (POST)
 app.post("/urls", (req, res) => {
   if (!req.session.user_id) {
-    res.render("index", templateVars);
+    res.render("index", templateVars());
     return;
   }
   const random = randomStringGen().toString();
@@ -187,7 +196,7 @@ app.post("/urls", (req, res) => {
 // Route handler for deconsting urls (POST)
 app.delete("/urls/:id", (req, res) => {
   if (!req.session.user_id) {
-    res.status(401).render("login", templateVars);
+    res.status(401).render("login", templateVars());
     return;
   }
   for (let url in urlDatabase) {
@@ -202,8 +211,8 @@ app.get("/login", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
   } else {
-    templateVars.currentUser = users[req.session.user_id];
-    res.render("login", templateVars);
+    // templateVars.currentUser = users[req.session.user_id];
+    res.render("login", templateVars(users[req.session.user_id]));
   }
 });
 
@@ -213,7 +222,7 @@ app.get("/register", (req, res) => {
     res.redirect("/urls");
     return;
   }
-  res.render("register", templateVars);
+  res.render("register", templateVars());
 });
 
 // Route handler for "/login" (POST)
@@ -230,22 +239,22 @@ app.post("/login", (req, res) => {
       return;
     }
   }
-  templateVars.message = "Oops, you have entered an incorrect email or password!";
-  res.status(403).render("login", templateVars);
+  // templateVars.message = "Oops, you have entered an incorrect email or password!";
+  res.status(403).render("login", templateVars(null, "Oops, you have entered an incorrect email or password!"));
 });
 
 // Route handler for "register"
 app.post("/register", (req, res) => {
   if (!req.body.email || !req.body.password) {
-    templateVars.message = "Please enter a valid email and a password.";
-    res.status(400).render("register", templateVars);
+    // templateVars.message = "Please enter a valid email and a password.";
+    res.status(400).render("register", templateVars(null, "Please enter a valid email and a password."));
     return;
   }
 
   for (let user in users) {
     if (users[user].email === req.body.email) {
-      templateVars.message = "That email is already in use.";
-      res.status(400).render("register", templateVars);
+      // templateVars.message = "That email is already in use.";
+      res.status(400).render("register", templateVars(null, "That email is already in use."));
       return;
     }
   }
@@ -258,9 +267,8 @@ app.post("/register", (req, res) => {
     password: bcrypt.hashSync(req.body.password, 12)
   };
   req.session.user_id = userID;
-  templateVars.currentUser = users[req.session.user_id];
-  templateVars.message = null;
-  // console.log(bcrypt.hashSync(req.body.password, 12));
+  // templateVars.currentUser = users[req.session.user_id];
+  // templateVars.message = null;
   res.redirect("/urls");
 });
 
@@ -272,9 +280,9 @@ app.post("/logout", (req, res) => {
 
 // Route handler for editing urls (POST)
 app.put("/urls/:id", (req, res) => {
-  templateVars.currentUser = users[req.session.user_id];
+  // templateVars.currentUser = users[req.session.user_id];
   if (urlDatabase[req.params.id].userID !== req.session.user_id) {
-    res.status(403).render("index", templateVars);
+    res.status(403).render("index", templateVars(users[req.session.user_id]));
     return;
   }
   if (urlDatabase.hasOwnProperty(req.params.id)) {
@@ -289,8 +297,8 @@ app.put("/urls/:id", (req, res) => {
 
 app.use((req, res) => {
   // templateVars.currentUser = users[req.session.user_id];
-  templateVars.message = "Oops, you can't do that.";
-  res.status(404).render("index", templateVars);
+  // templateVars.message = "Oops, that doesn't seem to have worked.";
+  res.status(404).render("index", templateVars(users[req.session.user_id] || null, "Oops, looks like that page doesn't exist."));
 });
 
 // Start listening
