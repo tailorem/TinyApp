@@ -7,10 +7,12 @@ const app = express();
 var methodOverride = require('method-override');
 app.use(methodOverride('_method'));
 
+require('dotenv').config();
+
 const cookieSession = require("cookie-session");
 app.use(cookieSession({
   name: "session",
-  keys: [randomStringGen(), randomStringGen(), randomStringGen()],
+  keys: [process.env.COOKIE_SESSION_KEYS],
 }));
 
 const bcrypt = require("bcrypt");
@@ -90,31 +92,25 @@ function templateVars(user, text, specificUrls) {
   return tempVars;
 }
 
-// Route handler for "/" GET requests
+// Route handler for "/" (GET)
 app.get("/", (req, res) => {
+  // if logged in, redirect to urls index
+  // else, redirect to login page
   if (req.session.user_id) {
-    // console.log("where are they");
     res.redirect("/urls");
   } else {
     res.redirect(301, "/login");
   }
-  // if logged in, redirect to "/urls"
-  // else, redirect to "/login"
 });
 
-// Route handler for "/urls" GET requests
+// Route handler for "/urls" (GET)
 app.get("/urls", (req, res) => {
-  // console.log(req.session);
-  // templateVars.urls = urlsForUser(req.session.user_id);
-  // templateVars.currentUser = users[req.session.user_id];
-  // console.log(users);
   res.render("index",
     templateVars(users[req.session.user_id], null, urlsForUser(req.session.user_id)));
 });
 
-// Route handler for "/urls/new" GET requests
+// Route handler for "/urls/new" (GET)
 app.get("/urls/new", (req, res) => {
-  // templateVars.currentUser = users[req.session.user_id];
   if (!req.session.user_id) {
     res.redirect("/login");
   } else {
@@ -122,25 +118,22 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-// Route handler for "/urls/:id" GET requests
+// Route handler for "/urls/:id" (GET)
 app.get("/urls/:id", (req, res) => {
   if (!req.session.user_id) {
     res.render("login", templateVars());
     return;
   }
-
+  // If short URL does not exist, show 404 message
   if (!urlDatabase.hasOwnProperty(req.params.id)) {
-    // console.log(req.params);
-    // templateVars.message = "Oops, looks like that page doesn't exist.";
-    res.status(404).render("index", templateVars(users[req.session.user_id] || null, "Oops, looks like that page doesn't exist."));
+    res.status(404).render("index", templateVars(users[req.session.user_id] || null, "Oops, looks like that page doesn't exist.", urlsForUser(req.session.user_id)));
     return;
   }
+  // If URL does not belong to user, show 401 message
   if (urlDatabase[req.params.id].userID !== req.session.user_id) {
-    // templateVars.message = "Oops, that doesn't seem to be one of your URLs!";
-    res.status(401).render("index", templateVars(users[req.session.user_id], "Oops, that doesn't seem to be one of your URLs!"));
+    res.status(401).render("index", templateVars(users[req.session.user_id], "Oops, that doesn't seem to be one of your URLs!", urlsForUser(req.session.user_id)));
     return;
   }
-
     res.render("show", {
       currentUser: users[req.session.user_id],
       message: null,
@@ -149,17 +142,12 @@ app.get("/urls/:id", (req, res) => {
     });
 });
 
-// Route handler for "/u/:id"
+// Route handler for "/u/:id" (GET)
 app.get("/u/:id", (req, res) => {
-  // const shortURL = req.params.id;
-  // let longURL = urlDatabase[shortURL];
-  templateVars.currentUser = users[req.session.user_id];
-  templateVars.shortURL = req.params.id;
   let longURL = urlDatabase[req.params.id];
-
   if (!longURL) {
-    // templateVars.message = "Oops, looks like that page doesn't exist.";
     res.status(404).render("index", {
+      urls: urlsForUser(req.session.user_id),
       currentUser: users[req.session.user_id],
       message: "Oops, looks like that page doesn't exist.",
       shortURL: req.params.id
@@ -177,23 +165,16 @@ app.post("/urls", (req, res) => {
   }
   const random = randomStringGen().toString();
   let link = (req.body.longURL).toString();
-  if (!link.startsWith("http://") /* || !link.startsWith("https://") */) {
+  if (!link.startsWith("http://")) {
     link = "http://" + link;
   }
   urlDatabase[random] = {};
   urlDatabase[random].longURL = link;
   urlDatabase[random].userID = req.session.user_id;
-
-  // templateVars.message = "Success! Here's your new short ULR:";
-  // console.log(urlDatabase[random]);
   res.redirect(`/urls/${random}`);
 });
 
-// app.post("/urls/:id", (req, res) => {
-//   // input code here
-// });
-
-// Route handler for deconsting urls (POST)
+// Route handler for deleting urls (POST/DELETE)
 app.delete("/urls/:id", (req, res) => {
   if (!req.session.user_id) {
     res.status(401).render("login", templateVars());
@@ -207,16 +188,16 @@ app.delete("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
+// Route handler for deleting urls (GET)
 app.get("/login", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
   } else {
-    // templateVars.currentUser = users[req.session.user_id];
     res.render("login", templateVars(users[req.session.user_id]));
   }
 });
 
-// Route handler for "register"
+// Route handler for "register" (GET)
 app.get("/register", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
@@ -227,48 +208,39 @@ app.get("/register", (req, res) => {
 
 // Route handler for "/login" (POST)
 app.post("/login", (req, res) => {
-
-  templateVars.currentUser = users[req.session.user_id];
+  // Email and password must be correct for successful log in
   for (let user in users) {
     if (req.body.email === users[user].email && bcrypt.compareSync(req.body.password, users[user].password)) {
-      templateVars.message = null;
-      // console.log(users[user].id);
-      // console.log(req.session);
       req.session.user_id = `${users[user].id}`;
       res.redirect("/");
       return;
     }
   }
-  // templateVars.message = "Oops, you have entered an incorrect email or password!";
   res.status(403).render("login", templateVars(null, "Oops, you have entered an incorrect email or password!"));
 });
 
 // Route handler for "register"
 app.post("/register", (req, res) => {
+  // Registration fields may not be left blank
   if (!req.body.email || !req.body.password) {
-    // templateVars.message = "Please enter a valid email and a password.";
     res.status(400).render("register", templateVars(null, "Please enter a valid email and a password."));
     return;
   }
-
+  // Email address may only be registered once
   for (let user in users) {
     if (users[user].email === req.body.email) {
-      // templateVars.message = "That email is already in use.";
       res.status(400).render("register", templateVars(null, "That email is already in use."));
       return;
     }
   }
-
+  // Randomly generated userID
   const userID = randomStringGen();
-
   users[userID] = {
     id: userID,
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 12)
   };
   req.session.user_id = userID;
-  // templateVars.currentUser = users[req.session.user_id];
-  // templateVars.message = null;
   res.redirect("/urls");
 });
 
@@ -278,9 +250,8 @@ app.post("/logout", (req, res) => {
   res.redirect("/login");
 });
 
-// Route handler for editing urls (POST)
+// Route handler for editing urls (POST/PUT)
 app.put("/urls/:id", (req, res) => {
-  // templateVars.currentUser = users[req.session.user_id];
   if (urlDatabase[req.params.id].userID !== req.session.user_id) {
     res.status(403).render("index", templateVars(users[req.session.user_id]));
     return;
@@ -295,9 +266,8 @@ app.put("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
+// 404 Error handler...
 app.use((req, res) => {
-  // templateVars.currentUser = users[req.session.user_id];
-  // templateVars.message = "Oops, that doesn't seem to have worked.";
   res.status(404).render("index", templateVars(users[req.session.user_id] || null, "Oops, looks like that page doesn't exist."));
 });
 
